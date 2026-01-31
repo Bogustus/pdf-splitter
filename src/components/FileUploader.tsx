@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { useDropzone, FileRejection } from 'react-dropzone';
+import { useDropzone } from 'react-dropzone';
 import { UploadCloud } from 'lucide-react';
 
 interface FileUploaderProps {
@@ -7,7 +7,7 @@ interface FileUploaderProps {
 }
 
 export const FileUploader: React.FC<FileUploaderProps> = ({ onFileSelect }) => {
-    const onDrop = useCallback((acceptedFiles: File[], fileRejections: FileRejection[]) => {
+    const onDrop = useCallback((acceptedFiles: File[]) => {
         if (acceptedFiles.length > 0) {
             onFileSelect(acceptedFiles[0]);
         }
