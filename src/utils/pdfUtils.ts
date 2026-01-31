@@ -8,7 +8,7 @@ export interface SplitOptions {
 }
 
 export const splitPdfAndZip = async (
-  file: File, 
+  file: File,
   options: SplitOptions = { mode: 'all' },
   onProgress?: (progress: number) => void
 ): Promise<void> => {
@@ -34,28 +34,30 @@ export const splitPdfAndZip = async (
   }
 
   const totalOps = pagesToExtract.length;
-  
+
   for (let i = 0; i < totalOps; i++) {
     const pageIndex = pagesToExtract[i];
-    
+
     // Create a new document for this page
     const newPdf = await PDFDocument.create();
-    
+
     // Copy the page
     const [copiedPage] = await newPdf.copyPages(pdfDoc, [pageIndex]);
     newPdf.addPage(copiedPage);
-    
+
     const pdfBytes = await newPdf.save();
-    
-    // Naming: page_001.pdf
+
+    // Naming: [Original Name]_001.pdf
+    const baseName = file.name.replace(/\.pdf$/i, '');
     const pageNum = pageIndex + 1;
-    const pad = totalPages > 99 ? 3 : totalPages > 9 ? 2 : 1;
-    const fileName = `page_${String(pageNum).padStart(pad, '0')}.pdf`;
-    
+    // Ensure at least 3 digits for padding, or more if totalPages requires it
+    const pad = Math.max(3, String(totalPages).length);
+    const fileName = `${baseName}_${String(pageNum).padStart(pad, '0')}.pdf`;
+
     folder.file(fileName, pdfBytes);
 
     if (onProgress) {
-        onProgress(Math.round(((i + 1) / totalOps) * 100));
+      onProgress(Math.round(((i + 1) / totalOps) * 100));
     }
   }
 
@@ -68,7 +70,7 @@ export const splitPdfAndZip = async (
 const parsePageRanges = (rangeStr: string, maxPages: number): number[] => {
   const pages = new Set<number>();
   const parts = rangeStr.split(',');
-  
+
   parts.forEach(part => {
     const cleaned = part.trim();
     if (cleaned.includes('-')) {
@@ -85,16 +87,16 @@ const parsePageRanges = (rangeStr: string, maxPages: number): number[] => {
       }
     }
   });
-  
+
   return Array.from(pages).sort((a, b) => a - b);
 };
 
 export const getPdfDetails = async (file: File) => {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdfDoc = await PDFDocument.load(arrayBuffer);
-    return {
-        pageCount: pdfDoc.getPageCount(),
-        title: pdfDoc.getTitle(),
-        author: pdfDoc.getAuthor()
-    };
+  const arrayBuffer = await file.arrayBuffer();
+  const pdfDoc = await PDFDocument.load(arrayBuffer);
+  return {
+    pageCount: pdfDoc.getPageCount(),
+    title: pdfDoc.getTitle(),
+    author: pdfDoc.getAuthor()
+  };
 }
